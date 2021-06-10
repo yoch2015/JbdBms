@@ -75,9 +75,14 @@ float JbdBms::getChargePercentage()
 {
   return m_chargePercentage;
 }
+
 uint16_t JbdBms::getProtectionState()
 {
   return m_protectionState;
+}
+
+uint16_t JbdBms::getMosfet(){
+  return m_mosfet;
 }
 
 uint16_t JbdBms::getCycle(){
@@ -115,14 +120,20 @@ void JbdBms::sendCellMessage() {
 
 void JbdBms::parseReqBasicMessage(uint8_t * t_message) {
   m_voltage = (float)two_ints_into16(t_message[4], t_message[5])/100;
-  m_current = ((float)two_ints_into16(t_message[6], t_message[7])) * 10;
+  m_current = ((float)two_ints_into16(t_message[6], t_message[7]));
   m_chargePercentage = t_message[23];
+  m_mosfet = t_message[24];
   m_protectionState = ((float)two_ints_into16(t_message[20], t_message[21]));
   m_cycle = ((float)two_ints_into16(t_message[12], t_message[13]));
   m_Temp1 = (((float)two_ints_into16(t_message[27], t_message[28])) - 2731) / 10.00f;
   m_Temp2 = (((float)two_ints_into16(t_message[29], t_message[30])) - 2731) / 10.00f;
-  
-}
+
+  // minus notation of discharge current  
+  if(m_current > 32768){
+    m_current = -(m_current xor 0xFFFF) * 10;
+  }else{
+    m_current = m_current * 10;
+  }
 
 void JbdBms::parseReqPackMessage(uint8_t * t_message){ //packCellInfoStruct * t_packCellInfo) {
   uint16_t _cellSum = 0;
@@ -235,7 +246,7 @@ uint16_t JbdBms::computeCrc16JbdChina(uint8_t *puchMsg, uint8_t usDataLen)
 }
 
 uint32_t JbdBms::getMaxTimeout(){
-  return 100;
+  return 200;
 }
 
 /**

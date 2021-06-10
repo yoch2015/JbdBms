@@ -70,6 +70,7 @@ public:
   float getCurrent();
   float getChargePercentage();
   uint16_t getProtectionState();
+  uint16_t getMosfet();
   uint16_t getCycle();
   float getTemp1();
   float getTemp2();
@@ -82,6 +83,7 @@ private:
   float m_current = 0;
   float m_chargePercentage = 0;
   uint16_t m_protectionState = 0;
+  uint16_t m_mosfet = 0;
   uint16_t m_cycle = 0;
   float m_Temp1 = 0;
   float m_Temp2 = 0;
