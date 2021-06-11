@@ -1,4 +1,4 @@
-# JbdBms library for Arduino v0.2
+# JbdBms library for Arduino v0.21
 
 This is a library for working with battery manager system JBD.
 If you can configure your BMS trough the JBDTool, then this code will suit you.
@@ -52,6 +52,7 @@ This method return the float value.
 myBms.getCurrent();
 ```
 This method return the float value.
+If it exceeds 32768, xor it and return it as a negative value.
 
 #### Protection state
 ```c++
@@ -80,6 +81,17 @@ If this value is not 0, then BMS detected some errors. You can check this value 
 #define BMS_POWER_OFF_ERRORS		0x46CA
 ```
 Some errors lead to power down (labeled "Power off"). If you want to read them a device that is powered from the battery, it will not work.
+
+### MosFET Status
+```c++
+int mosfet_state = myBms.getMosfet();
+```
+This method return the integer value.
+
+0 : Charge MosFET OFF   DisCagrge MosFET OFF
+1 : Charge MosFET ON    DisCagrge MosFET OFF
+2 : Charge MosFET OFF   DisCagrge MosFET ON
+3 : Charge MosFET ON    DisCagrge MosFET ON
 
 ### Cycle counter
 ```c++
