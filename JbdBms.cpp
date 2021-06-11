@@ -130,7 +130,7 @@ void JbdBms::parseReqBasicMessage(uint8_t * t_message) {
 
   // minus notation of discharge current  
   if(m_current > 32768){
-    m_current = -(m_current xor 0xFFFF) * 10;
+    m_current = -((int)m_current xor 0xFFFF) * 10;
   }else{
     m_current = m_current * 10;
   }
