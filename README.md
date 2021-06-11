@@ -51,7 +51,7 @@ This method return the float value.
 ```c++
 myBms.getCurrent();
 ```
-This method return the float value.
+This method return the float value.  
 If it exceeds 32768, xor it and return it as a negative value.
 
 #### Protection state
@@ -88,10 +88,10 @@ int mosfet_state = myBms.getMosfet();
 ```
 This method return the integer value.
 
-0 : Charge MosFET OFF   DisCagrge MosFET OFF
-1 : Charge MosFET ON    DisCagrge MosFET OFF
-2 : Charge MosFET OFF   DisCagrge MosFET ON
-3 : Charge MosFET ON    DisCagrge MosFET ON
+return 0 : Charge MosFET OFF   DisCagrge MosFET OFF  
+return 1 : Charge MosFET ON    DisCagrge MosFET OFF  
+return 2 : Charge MosFET OFF   DisCagrge MosFET ON  
+return 3 : Charge MosFET ON    DisCagrge MosFET ON  
 
 ### Cycle counter
 ```c++
