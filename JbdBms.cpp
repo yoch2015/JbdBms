@@ -5,15 +5,16 @@
  * \date September 2019
  */
 
-#include "JbdBms.h"
+#include <jbdBms.h>
+#include "SoftwareSerial.h"
 
+//SoftwareSerial SerialBT(5, 17); // RX, TX
 
 JbdBms::JbdBms(HardwareSerial * t_hardwareSerial){
   m_port = t_hardwareSerial;
   m_hwserial = true;
   static_cast<HardwareSerial*>(m_port)->begin(9600);
 }
-
 
 JbdBms::JbdBms(SoftwareSerial * t_softwareSerial){
   m_port = t_softwareSerial;
@@ -33,7 +34,7 @@ JbdBms::JbdBms(int rx, int tx){
  * \retval status of reading
  */
 bool JbdBms::readBmsData(){
-  uint8_t responce[BMS_LEN_RESPONCE];
+  uint8_t responce[BMS_LEN_RESPONCE] = {0x0};
 
   sendReqBasicMessage();
   readResponce(responce);
@@ -50,7 +51,7 @@ bool JbdBms::readBmsData(){
  * \retval status of reading
  */
 bool JbdBms::readPackData(){
-  uint8_t responce[BMS_LEN_RESPONCE];
+  uint8_t responce[BMS_LEN_RESPONCE] = {0x0};
 
   sendCellMessage();
   readResponce(responce);
@@ -71,24 +72,25 @@ float JbdBms::getCurrent() {
   return m_current;
 }
 
-float JbdBms::getChargePercentage()
-{
+float JbdBms::getResidualcap() {
+  return m_residualcap;
+}
+
+float JbdBms::getChargePercentage() {
   return m_chargePercentage;
 }
 
-uint16_t JbdBms::getProtectionState()
-{
+uint16_t JbdBms::getProtectionState() {
   return m_protectionState;
 }
 
-uint16_t JbdBms::getMosfet(){
-  return m_mosfet;
-}
-
-uint16_t JbdBms::getCycle(){
+uint16_t JbdBms::getCycle() {
   return m_cycle;
 }
 
+uint16_t JbdBms::getMosfet() {
+  return m_mosfet;
+}
 
 /**
  * \External Temp Probe
@@ -119,21 +121,28 @@ void JbdBms::sendCellMessage() {
 }
 
 void JbdBms::parseReqBasicMessage(uint8_t * t_message) {
-  m_voltage = (float)two_ints_into16(t_message[4], t_message[5])/100;
-  m_current = ((float)two_ints_into16(t_message[6], t_message[7]));
+
+  // 10mV
+  m_voltage = (float)two_ints_into16(t_message[4], t_message[5]) / 100.0;
+  // 10mA
+  m_current = (float)two_ints_into16(t_message[6], t_message[7]);
+  // 10mAh
+  m_residualcap = (float)two_ints_into16(t_message[8], t_message[9]) / 100.0;
+
+  if( m_current > 32768 ) {
+    m_current = -((int)m_current xor 0xffff) * 10.0;
+  } else {
+    m_current = m_current * 10.0;    
+  }
+  
   m_chargePercentage = t_message[23];
   m_mosfet = t_message[24];
   m_protectionState = ((float)two_ints_into16(t_message[20], t_message[21]));
   m_cycle = ((float)two_ints_into16(t_message[12], t_message[13]));
   m_Temp1 = (((float)two_ints_into16(t_message[27], t_message[28])) - 2731) / 10.00f;
   m_Temp2 = (((float)two_ints_into16(t_message[29], t_message[30])) - 2731) / 10.00f;
-
-  // minus notation of discharge current  
-  if(m_current > 32768){
-    m_current = -((int)m_current xor 0xFFFF) * 10;
-  }else{
-    m_current = m_current * 10;
-  }
+  
+}
 
 void JbdBms::parseReqPackMessage(uint8_t * t_message){ //packCellInfoStruct * t_packCellInfo) {
   uint16_t _cellSum = 0;
@@ -143,18 +152,15 @@ void JbdBms::parseReqPackMessage(uint8_t * t_message){ //packCellInfoStruct * t_
   m_packCellInfo.NumOfCells = t_message[3] / 2;  //Data length * 2 is number of cells !!!!!!
 
   byte offset = 4;
-  for (byte i = 0; i < m_packCellInfo.NumOfCells; i++)
-  {
+  for (byte i = 0; i < m_packCellInfo.NumOfCells; i++) {
     m_packCellInfo.CellVoltage[i] = ((uint16_t)two_ints_into16(t_message[i * 2 + offset], t_message[i * 2 + 1 + offset])); //Data length * 2 is number of cells !!!!!!
 
     _cellSum += m_packCellInfo.CellVoltage[i];
 
-    if (m_packCellInfo.CellVoltage[i] > _CellHigh)
-    {
+    if (m_packCellInfo.CellVoltage[i] > _CellHigh) {
         _CellHigh = m_packCellInfo.CellVoltage[i];
     }
-    if (m_packCellInfo.CellVoltage[i] < _CellLow)
-    {
+    if (m_packCellInfo.CellVoltage[i] < _CellLow) {
         _CellLow = m_packCellInfo.CellVoltage[i];
     }
 
@@ -162,31 +168,25 @@ void JbdBms::parseReqPackMessage(uint8_t * t_message){ //packCellInfoStruct * t_
     m_packCellInfo.CellHigh = _CellHigh;
     m_packCellInfo.CellDiff = _CellHigh - _CellLow; // Resolution 10 mV -> convert to volts
     m_packCellInfo.CellAvg = _cellSum / m_packCellInfo.NumOfCells;
-
   }
 }
 
-bool JbdBms::readResponce(uint8_t *t_outMessage)
-{
+bool JbdBms::readResponce(uint8_t *t_outMessage) {
   uint8_t i = 0;
   bool findBeginByte = false;
   uint32_t statrTime = millis();
-  while (i <= BMS_LEN_RESPONCE - 1)
-  {
-    if (abs((millis() - statrTime) > getMaxTimeout()))
-    {
+  while (i <= BMS_LEN_RESPONCE - 1) {
+    if (abs((millis() - statrTime) > getMaxTimeout())) {
       return false;
     }
     if (m_port->available() > 0) {
     // if (Serial2.available() > 0) {
       uint8_t thisByte = m_port->read();
       // uint8_t thisByte = Serial2.read();
-      if (thisByte == 0xDD)
-      {
+      if (thisByte == 0xDD) {
         findBeginByte = true;
       }
-      if (findBeginByte)
-      {
+      if (findBeginByte) {
         t_outMessage[i] = thisByte;
         i++;
       }
@@ -202,14 +202,12 @@ bool JbdBms::readResponce(uint8_t *t_outMessage)
  *  true - check passed;
  *  false - check not passed
  */
-bool JbdBms::checkCheckSumRecieve(uint8_t *t_message)
-{
+bool JbdBms::checkCheckSumRecieve(uint8_t *t_message) {
 
   uint16_t checkSumCompute;
   uint16_t checkSumAccepted;
   uint8_t lengthData;
   uint8_t startIndexCS;
-
 
   if (t_message[2] != 0) // Status OK
     return false;
@@ -232,10 +230,8 @@ bool JbdBms::checkCheckSumRecieve(uint8_t *t_message)
  * \param[in] usDataLen The quantity of bytes in the message buffer.
  * \return The function returns the CRC.
  */
-uint16_t JbdBms::computeCrc16JbdChina(uint8_t *puchMsg, uint8_t usDataLen)
-{
+uint16_t JbdBms::computeCrc16JbdChina(uint8_t *puchMsg, uint8_t usDataLen) {
   uint8_t lengthData = puchMsg[3];
-
   uint16_t summa = 0;
 
   for (int i = 4; i < lengthData + 4; i++)
@@ -245,15 +241,14 @@ uint16_t JbdBms::computeCrc16JbdChina(uint8_t *puchMsg, uint8_t usDataLen)
   return checkSum;
 }
 
-uint32_t JbdBms::getMaxTimeout(){
-  return 200;
+uint32_t JbdBms::getMaxTimeout() {
+  return 250;
 }
 
 /**
  * \brief Build one uint16_t out of two uint8_t
  */
-uint16_t JbdBms::two_ints_into16(int highbyte, int lowbyte) // turns two bytes into a single long integer
-{
+uint16_t JbdBms::two_ints_into16(int highbyte, int lowbyte) { // turns two bytes into a single long integer
   uint16_t a16bitvar = (highbyte);
   a16bitvar <<= 8; //Left shift 8 bits,
   a16bitvar = (a16bitvar | lowbyte); //OR operation, merge the two

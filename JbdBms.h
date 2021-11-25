@@ -8,7 +8,7 @@
 #ifndef JBD_BMS_HPP_
 #define JBD_BMS_HPP_
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include <SoftwareSerial.h>
 
 #define BMS_LEN_RESPONCE 34
@@ -46,14 +46,14 @@ typedef struct packCellInfoStruct{
 
 
 /**
- * \brief Class for working with BMS, which are compatible with the program
+?* \brief Class for working with BMS, which are compatible with the program
  * JBDTOOLS
  *
- * \ warning Adout JBD: maximum frequency (min time) data: 22.7 Hz(43.87 ms).
- * There are brakes due to the work of the BMS itself (she didn’t put a trip
+?* \ warning Adout JBD: maximum frequency (min time) data: 22.7 Hz(43.87 ms).
+?* There are brakes due to the work of the BMS itself (she didn’t put a trip
  * to DMA UART communication.
- * Probability is that the update data in the BMS itself
- * occurs with a frequency (period) of 5 Hz (200 ms).
+?* Probability is that the update data in the BMS itself
+?* occurs with a frequency (period) of 5 Hz (200 ms).
 */
 class JbdBms
 {
@@ -68,6 +68,7 @@ public:
 
   float getVoltage();
   float getCurrent();
+  float getResidualcap();
   float getChargePercentage();
   uint16_t getProtectionState();
   uint16_t getMosfet();
@@ -81,6 +82,7 @@ private:
   bool m_hwserial;
   float m_voltage = 0;
   float m_current = 0;
+  float m_residualcap = 0;
   float m_chargePercentage = 0;
   uint16_t m_protectionState = 0;
   uint16_t m_mosfet = 0;
