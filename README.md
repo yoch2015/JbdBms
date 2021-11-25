@@ -66,7 +66,7 @@ unit is 0.01A.
 ```c++
 myBms.getResidualcap();
 ```
-This method return the float value.
+This method return the float value.  
 unit is 1.0Ah.  
 
 #### Protection state
