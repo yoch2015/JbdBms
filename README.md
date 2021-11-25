@@ -46,22 +46,28 @@ You can work with the data obtained using the get-functions: getChargePercentage
 myBms.getChargePercentage();
 ```
 This method return the float value.
-unit is 1.0V.
+
+#### Total Voltage
+```c++
+myBms.getVoltage();
+```
+This method return the float value.  
+unit is 1.0V  
 
 #### Consumption current
 ```c++
 myBms.getCurrent();
 ```
 This method return the float value.
-If it exceeds 32768, xor it and return it as a negative value.
-unit is 0.01A.
+If it exceeds 32768, xor it and return it as a negative value.  
+unit is 0.01A.  
 
 #### Residual Capacity
 ```c++
 myBms.getResidualcap();
 ```
 This method return the float value.
-unit is 1.0Ah.
+unit is 1.0Ah.  
 
 #### Protection state
 ```c++
