@@ -18,14 +18,10 @@ Attention! UART GND circuit is electrically isolated from the power GND BMS.
 ### Initialization
 
 ```c++
-#include "JbdBms.hpp"
+#include "JbdBms.h"
 
 JbdBms myBms(6,7); // RX, TX
 
-void setup()
-{
-  myBms.begin();
-}
 ```
 ### Reading basic data from BMS
 
