@@ -1,4 +1,4 @@
-# JbdBms library for Arduino v0.21
+# JbdBms library for Arduino v0.2
 
 This is a library for working with battery manager system JBD.
 If you can configure your BMS trough the JBDTool, then this code will suit you.
@@ -22,6 +22,10 @@ Attention! UART GND circuit is electrically isolated from the power GND BMS.
 
 JbdBms myBms(6,7); // RX, TX
 
+void setup()
+{
+  myBms.begin();
+}
 ```
 ### Reading basic data from BMS
 
@@ -43,27 +47,11 @@ myBms.getChargePercentage();
 ```
 This method return the float value.
 
-#### Total Voltage
-```c++
-myBms.getVoltage();
-```
-This method return the float value.  
-unit is 1.0V  
-
 #### Consumption current
 ```c++
 myBms.getCurrent();
 ```
 This method return the float value.
-If it exceeds 32768, xor it and return it as a negative value.  
-unit is 0.01A.  
-
-#### Residual Capacity
-```c++
-myBms.getResidualcap();
-```
-This method return the float value.  
-unit is 1.0Ah.  
 
 #### Protection state
 ```c++
@@ -99,10 +87,10 @@ int mosfet_state = myBms.getMosfet();
 ```
 This method return the integer value.
 
-return 0 : Charge MosFET OFF   DisCagrge MosFET OFF  
-return 1 : Charge MosFET ON    DisCagrge MosFET OFF  
-return 2 : Charge MosFET OFF   DisCagrge MosFET ON  
-return 3 : Charge MosFET ON    DisCagrge MosFET ON  
+return 0 : Charge MosFET OFF   DisCharge MosFET OFF  
+return 1 : Charge MosFET ON    DisCharge MosFET OFF  
+return 2 : Charge MosFET OFF   DisCharge MosFET ON  
+return 3 : Charge MosFET ON    DisCharge MosFET ON  
 
 ### Cycle counter
 ```c++
@@ -134,7 +122,7 @@ You can work with the data obtained using the get-function getPackCellInfo().
 #### Voltage on the cells
 ```c++
 packCellInfoStruct cellInfo;
-cellInfo = myBms.getCurrent();
+cellInfo = myBms.getPackCellInfo();
 ```
 This method return the packCellInfoStruct.
 Structure structure is presented below:

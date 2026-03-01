@@ -68,7 +68,6 @@ public:
 
   float getVoltage();
   float getCurrent();
-  float getResidualcap();
   float getChargePercentage();
   uint16_t getProtectionState();
   uint16_t getMosfet();
@@ -82,7 +81,6 @@ private:
   bool m_hwserial;
   float m_voltage = 0;
   float m_current = 0;
-  float m_residualcap = 0;
   float m_chargePercentage = 0;
   uint16_t m_protectionState = 0;
   uint16_t m_mosfet = 0;
@@ -103,7 +101,8 @@ private:
   bool checkCheckSumRecieve(uint8_t * t_message);
   uint16_t computeCrc16JbdChina(uint8_t * puchMsg, uint8_t usDataLen);
   float converUint32ToFloat(uint32_t number);
-  uint16_t two_ints_into16(int highbyte, int lowbyte);
+  uint16_t convertTwoIntsToUint16(int highbyte, int lowbyte);
+  int16_t convertTwoIntsToInt16(int highbyte, int lowbyte);
 
   uint32_t getMaxTimeout();
 };
