@@ -53,6 +53,12 @@ myBms.getCurrent();
 ```
 This method return the float value.
 
+#### Battery Capacity
+```c++
+myBms.getResidualcap();
+```
+This method return the float value.
+
 #### Protection state
 ```c++
 myBms.getProtectionState();
