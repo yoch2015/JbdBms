@@ -87,10 +87,12 @@ int mosfet_state = myBms.getMosfet();
 ```
 This method return the integer value.
 
-return 0 : Charge MosFET OFF   DisCharge MosFET OFF  
-return 1 : Charge MosFET ON    DisCharge MosFET OFF  
-return 2 : Charge MosFET OFF   DisCharge MosFET ON  
-return 3 : Charge MosFET ON    DisCharge MosFET ON  
+<pre>
+  return 0 : Charge MosFET OFF   DisCharge MosFET OFF  
+  return 1 : Charge MosFET ON    DisCharge MosFET OFF  
+  return 2 : Charge MosFET OFF   DisCharge MosFET ON  
+  return 3 : Charge MosFET ON    DisCharge MosFET ON  
+</pre>
 
 ### Cycle counter
 ```c++
