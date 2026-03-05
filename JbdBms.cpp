@@ -31,10 +31,10 @@ JbdBms::JbdBms(int rx, int tx){
  * \retval status of reading
  */
 bool JbdBms::readBmsData(){
-	//  uint8_t responce[BMS_LEN_RESPONCE] = {0x0};
-	uint8_t responce[BMS_LEN_RESPONCE];
+	uint8_t responce[BMS_LEN_RESPONCE] = {0x0};
 
 	sendReqBasicMessage();
+	delay(50);
 	readResponce(responce);
 
 	if (checkCheckSumRecieve(responce) == true) {
@@ -50,10 +50,10 @@ bool JbdBms::readBmsData(){
  * \retval status of reading
  */
 bool JbdBms::readPackData(){
-	//  uint8_t responce[BMS_LEN_RESPONCE] = {0x0};
-	uint8_t responce[BMS_LEN_RESPONCE];
+	uint8_t responce[BMS_LEN_RESPONCE] = {0x0};
 
 	sendCellMessage();
+	delay(50);
 	readResponce(responce);
 
 	if (checkCheckSumRecieve(responce) == true) {
@@ -111,22 +111,29 @@ packCellInfoStruct JbdBms::getPackCellInfo(){
 }
 
 void JbdBms::sendReqBasicMessage(){
+	while(m_port -> available()) m_port -> read();
 	uint8_t reqMessage[] = { 0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 0x77 };
 	m_port->write(reqMessage, 7);
 }
 
 void JbdBms::sendCellMessage(){
+	while(m_port -> available()) m_port -> read();
 	uint8_t reqMessage[] = { 0xDD, 0xA5, 0x04, 0x00, 0xFF, 0xFC, 0x77 };
 	m_port->write(reqMessage, 7);
 }
 
 void JbdBms::parseReqBasicMessage(uint8_t * t_message){
 	//10mV
-	m_voltage = (float)convertTwoIntsToUint16(t_message[4], t_message[5]) / 100;
+	m_voltage = (float)convertTwoIntsToUint16(t_message[4], t_message[5])/100;
 	//100mA
-	m_current = ((float)convertTwoIntsToInt16(t_message[6], t_message[7])) * 10;
+	m_current = ((float)convertTwoIntsToInt16(t_message[6], t_message[7]));
+	if( m_current > 32768 ) {
+		m_current = -((int)m_current xor 0xffff) * 10.0;
+	} else {
+		m_current = m_current * 10.0;    
+	}
 	//10mAh
-	m_residualcap = (float)convertTwoIntsToUint16(t_message[8], t_message[9]) / 100.0;
+	m_residualcap = (float)convertTwoIntsToInt16(t_message[8], t_message[9]) / 100.0;
 	m_chargePercentage = t_message[23];
 	m_mosfet = t_message[24];
 	m_protectionState = ((float)convertTwoIntsToUint16(t_message[20], t_message[21]));
@@ -260,4 +267,3 @@ uint16_t JbdBms::convertTwoIntsToUint16(int highbyte, int lowbyte){ // turns two
 	a16bitvar = (a16bitvar | lowbyte); //OR operation, merge the two
 	return a16bitvar;
 }
-
