@@ -1,8 +1,8 @@
 /*
  * \brief Source file for JbdBms class
  * \author rahmaevao and boboxx
- * \version 0.3
- * \date September 2019
+ * \version 0.31
+ * \date July 2026
  */
 
 #include "JbdBms.h"
@@ -125,22 +125,17 @@ void JbdBms::sendCellMessage(){
 void JbdBms::parseReqBasicMessage(uint8_t * t_message){
 	//10mV
 	m_voltage = (float)convertTwoIntsToUint16(t_message[4], t_message[5])/100;
-	//100mA
-	m_current = ((float)convertTwoIntsToInt16(t_message[6], t_message[7]));
-	if( m_current > 32768 ) {
-		m_current = -((int)m_current xor 0xffff) * 10.0;
-	} else {
-		m_current = m_current * 10.0;    
-	}
+	//10mA
+	m_current = ((float)convertTwoIntsToInt16(t_message[6], t_message[7])) * 10;
 	//10mAh
-	m_residualcap = (float)convertTwoIntsToInt16(t_message[8], t_message[9]) / 100.0;
+	m_residualcap = (float)convertTwoIntsToUint16(t_message[8], t_message[9]) / 100.0;
 	m_chargePercentage = t_message[23];
 	m_mosfet = t_message[24];
 	m_protectionState = ((float)convertTwoIntsToUint16(t_message[20], t_message[21]));
 	m_cycle = ((float)convertTwoIntsToUint16(t_message[12], t_message[13]));
 	m_Temp1 = (((float)convertTwoIntsToUint16(t_message[27], t_message[28])) - 2731) / 10.00f;
 	m_Temp2 = (((float)convertTwoIntsToUint16(t_message[29], t_message[30])) - 2731) / 10.00f;
-}
+
 
 void JbdBms::parseReqPackMessage(uint8_t * t_message){ //packCellInfoStruct * t_packCellInfo){
 	uint16_t _cellSum = 0;
@@ -232,22 +227,22 @@ bool JbdBms::checkCheckSumRecieve(uint8_t *t_message){
  * \param[in] usDataLen The quantity of bytes in the message buffer.
  * \return The function returns the CRC.
  */
-uint16_t JbdBms::computeCrc16JbdChina(uint8_t *puchMsg, uint8_t usDataLen){
+uint16_t JbdBms::computeCrc16JbdChina(uint8_t *puchMsg){
 	uint8_t lengthData = puchMsg[3];
 	uint16_t summa = 0;
-
+	
 	for (int i = 4; i < lengthData + 4; i++) {
-	    summa = summa + puchMsg[i];
+		summa = summa + puchMsg[i];
 	}
-
+	
 	uint16_t checkSum = (summa + lengthData - 1) ^ 0xFFFF;
 	return checkSum;
 }
-
+	
 uint32_t JbdBms::getMaxTimeout(){
 	return 100;
 }
-
+	
 int16_t JbdBms::convertTwoIntsToInt16(int highbyte, int lowbyte){
 	int16_t value = convertTwoIntsToUint16(highbyte, lowbyte);
 	if (value & 0b1000000000000000) {  // Test for positive / negative with bit mask
@@ -256,11 +251,7 @@ int16_t JbdBms::convertTwoIntsToInt16(int highbyte, int lowbyte){
 	}
 	return value;
 }
-
-/**
- * \brief Build one uint16_t out of two uint8_t
- */
-//uint16_t JbdBms::two_ints_into16(int highbyte, int lowbyte) {
+	
 uint16_t JbdBms::convertTwoIntsToUint16(int highbyte, int lowbyte){ // turns two bytes into a single long integer
 	uint16_t a16bitvar = (highbyte);
 	a16bitvar <<= 8; //Left shift 8 bits,

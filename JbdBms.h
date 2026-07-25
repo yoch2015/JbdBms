@@ -100,7 +100,7 @@ class JbdBms {
 	bool readResponce(uint8_t * t_outMessage);
 
 	bool checkCheckSumRecieve(uint8_t * t_message);
-	uint16_t computeCrc16JbdChina(uint8_t * puchMsg, uint8_t usDataLen);
+	uint16_t computeCrc16JbdChina(uint8_t * puchMsg);
 	float converUint32ToFloat(uint32_t number);
 	uint16_t convertTwoIntsToUint16(int highbyte, int lowbyte);
 	int16_t convertTwoIntsToInt16(int highbyte, int lowbyte);
